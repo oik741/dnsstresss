@@ -23,6 +23,7 @@ var (
 	resolver        string
 	randomIds       bool
 	flood           bool
+	proto			string
 )
 
 func init() {
@@ -40,6 +41,8 @@ func init() {
 		"Resolver to test against")
 	flag.BoolVar(&flood, "f", false,
 		"Don't wait for an answer before sending another")
+	flag.StringVar(&proto, "proto", "udp",
+		"Transport layer protocol to use (tcp|udp)")
 }
 
 func main() {
@@ -61,6 +64,12 @@ func main() {
 	if flag.NArg() < 1 {
 		flag.Usage()
 		os.Exit(1)
+	}
+
+	proto = strings.ToLower(proto)
+	if (proto != "udp") && (proto != "tcp") {
+		fmt.Println("Unsupporter transport protocol, UDP and TCP supported only")
+		os.Exit(2)
 	}
 
 	parsedResolver, err := ParseIPPort(resolver)
@@ -185,7 +194,7 @@ func linearResolver(threadID int, domain string, sentCounterCh chan<- statsMessa
 
 func dnsExchange(resolver string, message *dns.Msg) error {
 	//XXX: How can we share the connection between subsequent attempts ?
-	dnsconn, err := net.Dial("udp", resolver)
+	dnsconn, err := net.Dial(proto, resolver)
 	if err != nil {
 		return err
 	}
