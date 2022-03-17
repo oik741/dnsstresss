@@ -172,7 +172,7 @@ func linearResolver(threadID int, domain string, sentCounterCh chan<- statsMessa
 				}
 				if err != nil {
 					if verbose {
-						fmt.Printf("%s error: %d (%s)\n", domain, err, resolver)
+						fmt.Printf("ID: %d, error: %+v (%s)\n", message.Id, err, resolver)
 					}
 					errors++
 				}
@@ -198,12 +198,16 @@ func dnsExchange(resolver string, message *dns.Msg) error {
 	if err != nil {
 		return err
 	}
+
 	co := &dns.Conn{Conn: dnsconn}
 	defer co.Close()
 
 	// Actually send the message and wait for answer
 	co.WriteMsg(message)
 
-	_, err = co.ReadMsg()
+	msg, err := co.ReadMsg()
+	if err != nil {
+		fmt.Printf("msg.Id: %d, error: %+v\n", msg.Id, msg)
+	}
 	return err
 }
